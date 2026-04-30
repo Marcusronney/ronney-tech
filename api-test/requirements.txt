@@ -1,8 +1,0 @@
-fastapi==0.115.12
-uvicorn[standard]==0.34.2
-requests==2.32.3
-
-opentelemetry-distro==0.53b0
-opentelemetry-exporter-otlp==1.32.0
-opentelemetry-instrumentation-fastapi==0.53b0
-opentelemetry-instrumentation-requests==0.53b0
