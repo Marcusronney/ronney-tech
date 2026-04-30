@@ -2,18 +2,26 @@ import { notFound } from "next/navigation";
 import Container from "@/components/layout/Container";
 import { getProjetoPorSlug, getTodosProjetos } from "@/lib/projetos";
 
-type PageProps = { params: Promise<{ slug: string }> };
+type PageProps = {
+  params: { slug: string };
+};
 
-// Gera as páginas estáticas dos projetos durante o build da Vercel.
+// Gera páginas estáticas (SSG)
 export function generateStaticParams() {
-  return getTodosProjetos().map((projeto) => ({ slug: projeto.slug }));
+  return getTodosProjetos().map((projeto) => ({
+    slug: projeto.slug,
+  }));
 }
 
-export async function generateMetadata({ params }: PageProps) {
-  const { slug } = await params;
-  const projeto = getProjetoPorSlug(slug);
+// SEO dinâmico
+export function generateMetadata({ params }: PageProps) {
+  const projeto = getProjetoPorSlug(params.slug);
 
-  if (!projeto) return { title: "Projeto não encontrado | Ronney Tech" };
+  if (!projeto) {
+    return {
+      title: "Projeto não encontrado | Ronney Tech",
+    };
+  }
 
   return {
     title: `${projeto.titulo} | Ronney Tech`,
@@ -21,9 +29,9 @@ export async function generateMetadata({ params }: PageProps) {
   };
 }
 
-export default async function ProjetoDetalhePage({ params }: PageProps) {
-  const { slug } = await params;
-  const projeto = getProjetoPorSlug(slug);
+// Página do projeto
+export default function ProjetoDetalhePage({ params }: PageProps) {
+  const projeto = getProjetoPorSlug(params.slug);
 
   if (!projeto) notFound();
 
@@ -31,27 +39,74 @@ export default async function ProjetoDetalhePage({ params }: PageProps) {
     <main>
       <Container className="py-14">
         <article className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+
+          {/* STATUS + DATA */}
           <div className="flex flex-wrap items-center gap-3">
-            <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">{projeto.status}</span>
-            <time className="text-sm text-slate-500">{projeto.data}</time>
+            <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
+              {projeto.status}
+            </span>
+
+            <time className="text-sm text-slate-500">
+              {projeto.data}
+            </time>
           </div>
 
-          <h1 className="mt-6 text-4xl font-black tracking-tight text-slate-950">{projeto.titulo}</h1>
-          <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-600">{projeto.descricao}</p>
+          {/* TÍTULO */}
+          <h1 className="mt-6 text-4xl font-black tracking-tight text-slate-950">
+            {projeto.titulo}
+          </h1>
 
+          {/* DESCRIÇÃO */}
+          <p className="mt-4 max-w-3xl text-lg leading-8 text-slate-600">
+            {projeto.descricao}
+          </p>
+
+          {/* TECNOLOGIAS */}
           <div className="mt-6 flex flex-wrap gap-2">
-            {projeto.tecnologias.map((tecnologia) => (
-              <span key={tecnologia} className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600">{tecnologia}</span>
+            {projeto.tecnologias.map((tec) => (
+              <span
+                key={tec}
+                className="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600"
+              >
+                {tec}
+              </span>
             ))}
           </div>
 
-          {projeto.repositorio && (
-            <a href={projeto.repositorio} target="_blank" rel="noreferrer" className="mt-8 inline-flex rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800">
-              Abrir repositório no GitHub
-            </a>
-          )}
+          {/* BOTÕES DE AÇÃO */}
+          <div className="mt-8 flex flex-wrap gap-4">
 
-          <div className="prose-doc mt-10 whitespace-pre-wrap border-t border-slate-200 pt-8">{projeto.conteudo}</div>
+            {projeto.repositorio && (
+              <a
+                href={projeto.repositorio}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+              >
+                🔗 Ver no GitHub
+              </a>
+            )}
+
+            {projeto.demo && (
+              <a
+                href={projeto.demo}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 rounded-xl border border-slate-300 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100"
+              >
+                🚀 Ver demo
+              </a>
+            )}
+
+          </div>
+
+          {/* CONTEÚDO */}
+          <div className="prose-doc mt-10 border-t border-slate-200 pt-8">
+            <pre className="whitespace-pre-wrap font-sans">
+              {projeto.conteudo}
+            </pre>
+          </div>
+
         </article>
       </Container>
     </main>
