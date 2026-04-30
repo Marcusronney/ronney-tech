@@ -8,4 +8,5 @@ export type Projeto = {
   status: "Estudo" | "Em desenvolvimento" | "Concluído";
   destaque?: boolean;
   conteudo: string;
+  demo?: string;
 };

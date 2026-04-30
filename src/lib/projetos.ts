@@ -24,6 +24,7 @@ export function getTodosProjetos(): Projeto[] {
         data: data.data,
         tecnologias: data.tecnologias ?? [],
         repositorio: data.repositorio,
+        demo: data.demo,
         status: data.status ?? "Estudo",
         destaque: data.destaque ?? false,
         conteudo: content,
