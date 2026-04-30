@@ -1,9 +1,14 @@
 ---
-title: "Deploy Kubernetes"
-description: "Automação de deploy utilizando Kubernetes"
-date: "2026-04-30"
-tags: ["Kubernetes", "DevOps", "Docker"]
-github: "https://github.com/Marcusronney/deploy_kubernetes"
+titulo: "Deploy Kubernetes"
+descricao: "Automação de deploy utilizando Kubernetes"
+data: "2026-04-30"
+tecnologias:
+  - Kubernetes
+  - DevOps
+  - Docker
+repositorio: "https://github.com/Marcusronney/deploy_kubernetes"
+status: "Publicado"
+destaque: true
 ---
 
 # Deploy Kubernetes

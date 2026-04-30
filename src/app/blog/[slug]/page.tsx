@@ -72,7 +72,7 @@ export default function ProjetoDetalhePage({ params }: PageProps) {
               </span>
             ))}
           </div>
-
+G
           {/* BOTÕES DE AÇÃO */}
           <div className="mt-8 flex flex-wrap gap-4">
 
