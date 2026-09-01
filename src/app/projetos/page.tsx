@@ -70,7 +70,7 @@ export default async function ProjetosPage() {
 
         demo: undefined,
 
-        status: "GitHub",
+        status: "Concluído",
 
         destaque: false,
 
