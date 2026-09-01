@@ -20,10 +20,10 @@ type PageProps = {
   }>;
 };
 
-/*
+/**
  * Projetos locais continuam sendo pré-gerados.
  *
- * Projetos vindos do GitHub poderão ser resolvidos
+ * Projetos vindos do GitHub podem ser resolvidos
  * dinamicamente quando acessados.
  */
 export function generateStaticParams() {
@@ -32,12 +32,10 @@ export function generateStaticParams() {
   }));
 }
 
-export async function generateMetadata({
-  params,
-}: PageProps) {
+export async function generateMetadata({ params }: PageProps) {
   const { slug } = await params;
 
-  /*
+  /**
    * Primeiro procura nos projetos Markdown locais.
    */
   const projetoLocal = getProjetoPorSlug(slug);
@@ -49,7 +47,7 @@ export async function generateMetadata({
     };
   }
 
-  /*
+  /**
    * Caso não exista localmente, procura no GitHub.
    */
   const projetoGitHub = await getGitHubProjeto(slug);
@@ -73,7 +71,7 @@ export default async function ProjetoDetalhePage({
 }: PageProps) {
   const { slug } = await params;
 
-  /*
+  /**
    * =============================================
    * 1. PROJETO LOCAL
    * =============================================
@@ -85,7 +83,6 @@ export default async function ProjetoDetalhePage({
       <main>
         <Container className="py-14">
           <article className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-
             <div className="flex flex-wrap items-center gap-3">
               <span className="rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700">
                 {projetoLocal.status}
@@ -131,19 +128,17 @@ export default async function ProjetoDetalhePage({
                 {projetoLocal.conteudo}
               </ReactMarkdown>
             </div>
-
           </article>
         </Container>
       </main>
     );
   }
 
-  /*
+  /**
    * =============================================
    * 2. PROJETO GITHUB
    * =============================================
    */
-
   const repo = await getGitHubProjeto(slug);
 
   if (!repo) {
@@ -152,18 +147,31 @@ export default async function ProjetoDetalhePage({
 
   const readme = await getGitHubReadme(repo.name);
 
+  /**
+   * Base para imagens relativas do README.
+   *
+   * Exemplo:
+   * ./docs/dashboard.png
+   *
+   * vira:
+   * https://raw.githubusercontent.com/Marcusronney/repositorio/main/docs/dashboard.png
+   */
   const rawBase =
     `https://raw.githubusercontent.com/Marcusronney/` +
     `${repo.name}/${repo.default_branch}/`;
 
+  /**
+   * Base para links relativos do README.
+   */
+  const githubBlobBase =
+    `https://github.com/Marcusronney/` +
+    `${repo.name}/blob/${repo.default_branch}/`;
+
   return (
     <main>
       <Container className="py-14">
-
         <article className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-
           <div className="flex flex-wrap items-center gap-3">
-
             <span className="rounded-full bg-green-50 px-3 py-1 text-xs font-semibold text-green-700">
               GitHub
             </span>
@@ -173,7 +181,6 @@ export default async function ProjetoDetalhePage({
                 {repo.language}
               </span>
             )}
-
           </div>
 
           <h1 className="mt-6 text-4xl font-black tracking-tight text-slate-950">
@@ -187,7 +194,6 @@ export default async function ProjetoDetalhePage({
           )}
 
           <div className="mt-6 flex flex-wrap gap-2">
-
             {repo.topics
               .filter((topic) => topic !== "portfolio")
               .map((topic) => (
@@ -198,7 +204,6 @@ export default async function ProjetoDetalhePage({
                   {topic}
                 </span>
               ))}
-
           </div>
 
           <a
@@ -211,7 +216,6 @@ export default async function ProjetoDetalhePage({
           </a>
 
           <div className="prose-doc mt-10 border-t border-slate-200 pt-8">
-
             {!readme ? (
               <p className="text-slate-500">
                 README não encontrado neste repositório.
@@ -221,12 +225,20 @@ export default async function ProjetoDetalhePage({
                 remarkPlugins={[remarkGfm]}
                 components={{
                   img: ({ src, alt }) => {
-                    if (!src) {
+                    /**
+                     * react-markdown pode tipar src como string | Blob.
+                     * Para URLs do Markdown precisamos somente de string.
+                     */
+                    if (typeof src !== "string") {
                       return null;
                     }
 
                     let imageUrl = src;
 
+                    /**
+                     * Imagens absolutas continuam como estão.
+                     * Imagens relativas são buscadas no repositório.
+                     */
                     if (
                       !src.startsWith("http://") &&
                       !src.startsWith("https://") &&
@@ -243,7 +255,8 @@ export default async function ProjetoDetalhePage({
                       <img
                         src={imageUrl}
                         alt={alt ?? ""}
-                        className="my-6 max-w-full rounded-xl"
+                        loading="lazy"
+                        className="my-6 h-auto max-w-full rounded-xl"
                       />
                     );
                   },
@@ -253,34 +266,40 @@ export default async function ProjetoDetalhePage({
                       return <>{children}</>;
                     }
 
+                    /**
+                     * Links externos e âncoras continuam como estão.
+                     */
                     if (
                       href.startsWith("http://") ||
                       href.startsWith("https://") ||
+                      href.startsWith("mailto:") ||
                       href.startsWith("#")
                     ) {
+                      const externo =
+                        href.startsWith("http://") ||
+                        href.startsWith("https://");
+
                       return (
                         <a
                           href={href}
-                          target={
-                            href.startsWith("http")
-                              ? "_blank"
-                              : undefined
-                          }
-                          rel={
-                            href.startsWith("http")
-                              ? "noreferrer"
-                              : undefined
-                          }
+                          target={externo ? "_blank" : undefined}
+                          rel={externo ? "noreferrer" : undefined}
                         >
                           {children}
                         </a>
                       );
                     }
 
+                    /**
+                     * Links relativos do README apontam para
+                     * arquivos dentro do próprio GitHub.
+                     */
+                    const normalized = href
+                      .replace(/^\.\//, "")
+                      .replace(/^\//, "");
+
                     const githubUrl =
-                      `https://github.com/Marcusronney/` +
-                      `${repo.name}/blob/${repo.default_branch}/` +
-                      href.replace(/^\.\//, "");
+                      githubBlobBase + normalized;
 
                     return (
                       <a
@@ -297,11 +316,8 @@ export default async function ProjetoDetalhePage({
                 {readme}
               </ReactMarkdown>
             )}
-
           </div>
-
         </article>
-
       </Container>
     </main>
   );
